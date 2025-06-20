@@ -34,10 +34,110 @@ STEP-5: Display the obtained cipher text.
 
 
 
-Program:
+## Program:
+```
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+char matrix[SIZE][SIZE];
+
+void createMatrix(char key[]) {
+    int dict[26] = {0}, k = 0;
+    dict['j' - 'a'] = 1;
+
+    for (int i = 0; key[i]; i++) {
+        char ch = tolower(key[i]);
+        if (ch == 'j') ch = 'i';
+        if (!dict[ch - 'a']) {
+            matrix[k / SIZE][k % SIZE] = ch;
+            dict[ch - 'a'] = 1;
+            k++;
+        }
+    }
+
+    for (char ch = 'a'; ch <= 'z'; ch++) {
+        if (!dict[ch - 'a']) {
+            matrix[k / SIZE][k % SIZE] = ch;
+            k++;
+        }
+    }
+}
+
+void findPosition(char ch, int *row, int *col) {
+    if (ch == 'j') ch = 'i';
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            if (matrix[i][j] == ch) {
+                *row = i;
+                *col = j;
+                return;
+            }
+}
+
+void prepareText(char input[], char output[]) {
+    int i = 0, j = 0;
+    while (input[i]) {
+        char a = tolower(input[i]);
+        if (a < 'a' || a > 'z') {
+            i++;
+            continue;
+        }
+        if (a == 'j') a = 'i';
+        output[j++] = a;
+        if (input[i + 1]) {
+            char b = tolower(input[i + 1]);
+            if (a == b)
+                output[j++] = 'x';
+            else {
+                output[j++] = b == 'j' ? 'i' : b;
+                i++;
+            }
+        } else {
+            output[j++] = 'x';
+        }
+        i++;
+    }
+    output[j] = '\0';
+}
+
+void encrypt(char text[]) {
+    for (int i = 0; text[i] && text[i + 1]; i += 2) {
+        int r1, c1, r2, c2;
+        findPosition(text[i], &r1, &c1);
+        findPosition(text[i + 1], &r2, &c2);
+
+        if (r1 == r2) {
+            text[i] = matrix[r1][(c1 + 1) % SIZE];
+            text[i + 1] = matrix[r2][(c2 + 1) % SIZE];
+        } else if (c1 == c2) {
+            text[i] = matrix[(r1 + 1) % SIZE][c1];
+            text[i + 1] = matrix[(r2 + 1) % SIZE][c2];
+        } else {
+            text[i] = matrix[r1][c2];
+            text[i + 1] = matrix[r2][c1];
+        }
+    }
+}
+
+int main() {
+    char key[100], text[100], prepared[200];
+    printf("Enter key: ");
+    scanf("%s", key);
+    printf("Enter plaintext: ");
+    scanf("%s", text);
+
+    createMatrix(key);
+    prepareText(text, prepared);
+    encrypt(prepared);
+    printf("Encrypted Text: %s\n", prepared);
+    return 0;
+}
+```
 
 
 
 
-
-Output:
+## Output:
+![image](https://github.com/user-attachments/assets/54304e01-8b12-41f9-a7b1-972cfec95f2c)
